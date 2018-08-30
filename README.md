@@ -1,4 +1,4 @@
-#SDL2 Starter Framework - OSX
+# SDL2 Starter Framework - OSX
 
 ### Template with starter code for games/graphics programming using C++ & SDL, WITHOUT xcode 
 
