@@ -1,7 +1,6 @@
 // Animation - Animates hello.jpg scrolling up the window
 
 #include <iostream>
-#include <cmath>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_timer.h>
 #include <SDL2/SDL_image.h>
@@ -11,7 +10,8 @@ using namespace std;
 // Setting up Constants:
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
-const int SPEED = 300;
+// Speed in pixels per second
+const int SCROLL_SPEED = 300;
 
 int main()
 {
@@ -86,89 +86,31 @@ int main()
     // as a SDL rectangle:
     SDL_Rect dest;
 
-    // get AND SCALE DOWN the dimensions of the texture:
+    // get the dimensions of the texture:
     SDL_QueryTexture(tex, NULL, NULL, &dest.w, &dest.h);
-    dest.w /= 4;
-    dest.h /= 4;
 
-    // Start sprite in the center of the screen, with
-    // no velocity:
-    float x_pos = (WINDOW_WIDTH - dest.w) / 2;
-    float y_pos = (WINDOW_HEIGHT - dest.h) / 2;
-    float x_vel = 0;
-    float y_vel = 0;
+    // position the sprite at the bottom of the window
+    // origin is the top left corner, positive y is down
+    dest.x = (WINDOW_WIDTH - dest.w) / 2;
 
-    // Keep track of inputs that are given
-    int up = 0;
-    int down = 0;
-    int left = 0;
-    int right = 0;
-
-    // Set to 1 when "Close Window" button is pressed:
-    bool close_requested = false;
+    // Require float resolution for y position
+    float y_pos = WINDOW_HEIGHT;
 
     // Animation loop
-    while (!close_requested)
+    while (dest.y >= -dest.h)
     {
-        // Process Events
-        SDL_Event event;
-        while (SDL_PollEvent(&event))
-        {
-            if (event.type == SDL_QUIT) {
-                close_requested = true;
-            }
-        }
-
-        // **MOUSE**
-
-        // Get cursor position relative to window:
-        int mouse_x, mouse_y;
-        int buttons = SDL_GetMouseState(&mouse_x,&mouse_y);
-
-        // Determine velocity toward mouse:
-        int target_x = mouse_x - dest.w / 2;
-        int target_y = mouse_y - dest.h / 2;
-        float delta_x = target_x - x_pos;
-        float delta_y = target_y - y_pos;
-        // Pythagorean Thereom to calculate distance:
-        float distance = sqrt(delta_x * delta_x + delta_y * delta_y);
-
-        // Prevent Jitter
-        if (distance < 5) {
-            x_vel = y_vel = 0;
-        }
-        else {
-            x_vel = delta_x * SPEED / distance;
-            y_vel = delta_y * SPEED / distance;
-        }
-
-        // Reverse velocity if mouse button 1 pressed
-        // (bitwise AND)
-        if (buttons & SDL_BUTTON(SDL_BUTTON_LEFT)) {
-            x_vel = -x_vel;
-            y_vel = -y_vel;
-        }
-
-        // Update positions
-        x_pos += x_vel / 60;
-        y_pos += y_vel / 60;
-
-        // Collision Detection with bounds
-        if (x_pos <= 0) x_pos = 0;
-        if (y_pos <= 0) y_pos = 0;
-        if (x_pos >= WINDOW_WIDTH - dest.w) x_pos = WINDOW_WIDTH - dest.w;
-        if (y_pos >= WINDOW_HEIGHT - dest.h) y_pos = WINDOW_HEIGHT - dest.h;
-
-        // Set the positions in the struct
-        dest.x = (int) x_pos;
-        dest.y = (int) y_pos;
-
         // Clear the window
         SDL_RenderClear(rend);
+
+        // Set the y position in the struct
+        dest.y = (int) y_pos;
 
         // Draw the image to the window:
         SDL_RenderCopy(rend, tex, NULL, &dest);
         SDL_RenderPresent(rend);
+
+        // Update sprite position:
+        y_pos -= (float) SCROLL_SPEED / 60;
 
         // Wait 1/60th of a second
         SDL_Delay(1000/60);

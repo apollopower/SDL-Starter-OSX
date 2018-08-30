@@ -1,7 +1,6 @@
 // Animation - Animates hello.jpg scrolling up the window
 
 #include <iostream>
-#include <cmath>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_timer.h>
 #include <SDL2/SDL_image.h>
@@ -11,6 +10,7 @@ using namespace std;
 // Setting up Constants:
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
+// Speed in pixels per second
 const int SPEED = 300;
 
 int main()
@@ -91,18 +91,13 @@ int main()
     dest.w /= 4;
     dest.h /= 4;
 
-    // Start sprite in the center of the screen, with
-    // no velocity:
+    // Start sprite in the center of the screen:
     float x_pos = (WINDOW_WIDTH - dest.w) / 2;
     float y_pos = (WINDOW_HEIGHT - dest.h) / 2;
-    float x_vel = 0;
-    float y_vel = 0;
 
-    // Keep track of inputs that are given
-    int up = 0;
-    int down = 0;
-    int left = 0;
-    int right = 0;
+    // Give sprite initial velocity:
+    float x_vel = SPEED;
+    float y_vel = SPEED;
 
     // Set to 1 when "Close Window" button is pressed:
     bool close_requested = false;
@@ -119,45 +114,27 @@ int main()
             }
         }
 
-        // **MOUSE**
-
-        // Get cursor position relative to window:
-        int mouse_x, mouse_y;
-        int buttons = SDL_GetMouseState(&mouse_x,&mouse_y);
-
-        // Determine velocity toward mouse:
-        int target_x = mouse_x - dest.w / 2;
-        int target_y = mouse_y - dest.h / 2;
-        float delta_x = target_x - x_pos;
-        float delta_y = target_y - y_pos;
-        // Pythagorean Thereom to calculate distance:
-        float distance = sqrt(delta_x * delta_x + delta_y * delta_y);
-
-        // Prevent Jitter
-        if (distance < 5) {
-            x_vel = y_vel = 0;
-        }
-        else {
-            x_vel = delta_x * SPEED / distance;
-            y_vel = delta_y * SPEED / distance;
-        }
-
-        // Reverse velocity if mouse button 1 pressed
-        // (bitwise AND)
-        if (buttons & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+        // Collision detection with bounds:
+        if (x_pos <= 0) {
+            x_pos = 0;
             x_vel = -x_vel;
+        }
+        if (y_pos <= 0) {
+            y_pos = 0;
+            y_vel = -y_vel;
+        }
+        if (x_pos >= WINDOW_WIDTH - dest.w) {
+            x_pos = WINDOW_WIDTH - dest.w;
+            x_vel = -x_vel;
+        }
+        if (y_pos >= WINDOW_HEIGHT - dest.h) {
+            y_pos = WINDOW_HEIGHT - dest.h;
             y_vel = -y_vel;
         }
 
         // Update positions
         x_pos += x_vel / 60;
         y_pos += y_vel / 60;
-
-        // Collision Detection with bounds
-        if (x_pos <= 0) x_pos = 0;
-        if (y_pos <= 0) y_pos = 0;
-        if (x_pos >= WINDOW_WIDTH - dest.w) x_pos = WINDOW_WIDTH - dest.w;
-        if (y_pos >= WINDOW_HEIGHT - dest.h) y_pos = WINDOW_HEIGHT - dest.h;
 
         // Set the positions in the struct
         dest.x = (int) x_pos;
